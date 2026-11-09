@@ -1,0 +1,53 @@
+
+name: Actualizar Navarra TV
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar yt-dlp
+        run: |
+          python -m pip install --upgrade yt-dlp
+
+      - name: Obtener enlace HLS de Navarra TV
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VIDEO="https://www.dailymotion.com/video/x8dhap9"
+
+          URL=$(yt-dlp -g -f hls-2 "$VIDEO")
+
+          if [[ -z "$URL" || "$URL" != https://* ]]; then
+            echo "ERROR: No se ha obtenido una URL HLS valida"
+            exit 1
+          fi
+
+          {
+            echo "#EXTM3U"
+            echo '#EXTINF:-1 tvg-name="Navarra TV" group-title="Autonomicas",Navarra Television HD'
+            echo "$URL"
+          } > NavarraTV.m3u
+
+          echo "Lista NavarraTV.m3u generada correctamente"
+
+      - name: Publicar lista actualizada
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add NavarraTV.m3u
+          git diff --cached --quiet || git commit -m "Actualizar Navarra TV"
+          git push
