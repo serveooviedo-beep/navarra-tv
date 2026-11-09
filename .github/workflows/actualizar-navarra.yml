@@ -28,7 +28,7 @@ jobs:
 
           VIDEO="https://www.dailymotion.com/video/x8dhap9"
 
-          URL=$(yt-dlp -g -f hls-2 "$VIDEO")
+          URL=$(yt-dlp -g -f "best[protocol=m3u8_native]/best[protocol=m3u8]/best" "$VIDEO")
 
           if [[ -z "$URL" || "$URL" != https://* ]]; then
             echo "ERROR: No se ha obtenido una URL HLS valida"
